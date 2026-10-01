@@ -36,11 +36,12 @@ When you are activated, you MUST follow these phases in order. Do not skip steps
     - **If Cyberpunk Noir:** Add a Principled Volume to the World output for thick fog. Use high-intensity Emission shaders for neon accents. Keep base materials dark and metallic.
 3. Run `articulous_get_scene_graph` again to ensure no bounding boxes are clipping illegally.
 
-### Phase 4: Animation & Final Render
-1. Add keyframes to the objects or cameras using Blender's `fcurves` via Python.
-2. Run a final introspection check on frame 1 and the final frame.
-3. Use `articulous_run_blender_script` to render the final animation output to an MP4.
-4. Provide the user with the absolute path to the final output file.
+### Phase 4: Rigging, Animation & Final Render
+1. **Automated Rigging**: If the scene contains characters or moving parts, write Python code to generate an Armature (skeleton). Extrude bones to match the procedural mesh, and bind the mesh to the Armature using Automatic Weights (`bpy.ops.object.parent_set(type='ARMATURE_AUTO')`).
+2. Add keyframes to the objects, bones, or cameras using Blender's `fcurves` via Python.
+3. Run a final introspection check on frame 1 and the final frame.
+4. Use `articulous_run_blender_script` to render the final animation output to an MP4.
+5. Provide the user with the absolute path to the final output file.
 
 ## Critical Rules for Blender Python
 - Always use `bpy.context` carefully as Blender is running in background (headless) mode.
