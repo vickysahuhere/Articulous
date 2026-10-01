@@ -32,11 +32,12 @@ When you are activated, you MUST follow these phases in order. Do not skip steps
 
 ### Phase 3: High-Quality Assembly & Advanced Features
 1. **Models (External & Procedural)**: If the user provides an external file path/URL (.obj, .fbx), use Blender Python (`bpy.ops.import_scene`) to import it. Otherwise, procedurally generate meshes.
-2. **Environment & Biomes**: Instead of flat floors, use Geometry Nodes or Particle Systems to procedurally scatter rocks, grass, or debris across terrain meshes.
-3. **Physics & Destruction**: If the prompt implies smashing, falling, or cloth (capes/flags), apply Rigid Body Physics, Cell Fracture, or Cloth modifiers and bake the physics cache programmatically.
-4. **Textures**: Use Python to download image textures from the web if needed.
-5. **Mandatory Art Style Implementation**: Write Blender Python scripts to enforce the chosen art style on ALL materials (e.g., Genshin Cel-shading, Pixar subsurface scattering).
-6. Run `articulous_get_scene_graph` to verify bounding boxes.
+2. **ACTIVE TUTORIAL RESEARCH (CRITICAL)**: If you need to procedurally generate a complex object (like a car, an animal, or a specific prop), DO NOT GUESS. You must first use the `search_web` tool to search for "how to model [object] in Blender tutorial". Use `read_url_content` to read the guide, extract the exact modeling steps (e.g., which modifiers to use, how to extrude), and translate that real-world knowledge into your Blender Python scripts!
+3. **Environment & Biomes**: Instead of flat floors, use Geometry Nodes or Particle Systems to procedurally scatter rocks, grass, or debris across terrain meshes.
+4. **Physics & Destruction**: If the prompt implies smashing, falling, or cloth (capes/flags), apply Rigid Body Physics, Cell Fracture, or Cloth modifiers and bake the physics cache programmatically.
+5. **Textures**: Use Python to download image textures from the web if needed.
+6. **Mandatory Art Style Implementation**: Write Blender Python scripts to enforce the chosen art style on ALL materials (e.g., Genshin Cel-shading, Pixar subsurface scattering).
+7. Run `articulous_get_scene_graph` to verify bounding boxes.
 
 ### Phase 4: Rigging, Camera & Animation
 1. **Automated Rigging**: If characters are present, generate an Armature, bind the mesh using Automatic Weights (`ARMATURE_AUTO`), and animate the bones.
