@@ -17,12 +17,16 @@ pip install mcp "imageio[ffmpeg]"
 ```
 *(This installs the background communication tool and the video stitcher).*
 
-### Step 2: Install the Plugin into Antigravity
-1. Download this GitHub repository to your computer as a folder.
-2. Open your File Explorer and go to your Antigravity configuration folder. On Windows, this is usually:
+### Step 2: Download and Install the Plugin
+1. Open your Terminal (or Command Prompt).
+2. Copy-paste this exact command to download the code:
+   ```cmd
+   git clone https://github.com/vickysahuhere/Articulous.git
+   ```
+3. Open your File Explorer and find the `Articulous` folder you just downloaded.
+4. Move that entire `Articulous` folder into your Antigravity plugins directory. On Windows, this is usually located here:
    `C:\Users\YOUR_USERNAME\.gemini\config\plugins\` 
    *(Note: If the `plugins` folder doesn't exist yet, just create it).*
-3. Drag and drop the `Articulous` folder you downloaded straight into that `plugins` folder.
 
 ### Step 3: Tell Windows where Blender is
 The AI needs to know where Blender lives on your computer so it can run it in the background:
