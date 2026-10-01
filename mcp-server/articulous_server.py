@@ -123,5 +123,25 @@ def articulous_stitch_frames_to_mp4(frame_directory: str, output_filepath: str, 
     except Exception as e:
         return f'Error stitching video: {str(e)}'
 
+@mcp.tool()
+def articulous_create_project_folder(project_name: str) -> str:
+    """
+    Creates a dedicated project folder on the user's Desktop to store all renders, frames, and final videos for this project.
+    Returns the absolute path to the newly created project folder.
+    Always use this tool at the very beginning of a project!
+    """
+    import os
+    desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+    base_dir = os.path.join(desktop, "Articulous_Projects")
+    
+    # Create a safe folder name
+    safe_name = "".join([c for c in project_name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).rstrip()
+    safe_name = safe_name.replace(" ", "_")
+    
+    project_dir = os.path.join(base_dir, safe_name)
+    
+    os.makedirs(project_dir, exist_ok=True)
+    return project_dir
+
 if __name__ == "__main__":
     mcp.run()
