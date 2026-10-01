@@ -7,13 +7,36 @@ import sys
 # Initialize the FastMCP server
 mcp = FastMCP("Articulous Blender Bridge")
 
+import os
+
+WORKING_BLEND = os.path.join(tempfile.gettempdir(), "articulous_working_state.blend")
+
 def run_blender_headless(python_script_content: str) -> str:
-    """Helper to run a script in blender headless mode and return output."""
-    # Note: 'blender' must be in the system PATH. 
+    """Helper to run a script in blender headless mode and return output. Persists state via a blend file."""
     blender_executable = "blender" 
     
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".py", mode='w') as f:
-        f.write(python_script_content)
+    # Auto-inject code to load previous state and save new state
+    injected_script = f"""
+import bpy
+import os
+import sys
+
+# Catch all output
+try:
+    if os.path.exists(r'{WORKING_BLEND}'):
+        bpy.ops.wm.open_mainfile(filepath=r'{WORKING_BLEND}')
+    
+{chr(10).join('    ' + line for line in python_script_content.split(chr(10)))}
+
+    bpy.ops.wm.save_mainfile(filepath=r'{WORKING_BLEND}')
+except Exception as e:
+    import traceback
+    print("ARTICULOUS_ERROR:", traceback.format_exc(), file=sys.stderr)
+    sys.exit(1)
+"""
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".py", mode='w', encoding='utf-8') as f:
+        f.write(injected_script)
         script_path = f.name
         
     try:
@@ -24,7 +47,7 @@ def run_blender_headless(python_script_content: str) -> str:
         )
         return result.stdout
     except subprocess.CalledProcessError as e:
-        return f"Error executing Blender: {e.stderr}\nStdout: {e.stdout}"
+        return f"Error executing Blender Python:\n{e.stderr}\n\nStdout context:\n{e.stdout}"
     except FileNotFoundError:
         return "Error: 'blender' command not found. Ensure Blender is installed and added to your system PATH."
     finally:

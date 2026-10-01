@@ -44,6 +44,8 @@ When you are activated, you MUST follow these phases in order. Do not skip steps
 4. Run `articulous_run_blender_script` (or preview) to render the final animation MP4.
 5. Provide the user with the absolute path to the final output video.
 
-## Critical Rules for Blender Python
-- Always use `bpy.context` carefully as Blender is running in background (headless) mode.
-- Use `print()` in your python scripts if you need data returned back to you from Blender.
+## Critical Rules for Blender Python (SMART ERROR HANDLING)
+- **State Preservation**: The MCP Server automatically saves and loads your scene to a `working_state.blend` file between tool calls. You do not need to save the file manually, and your scene will not be lost between phases.
+- **Graceful Error Recovery**: If `articulous_run_blender_script` returns a Python traceback or error (e.g., `AttributeError`, `Context Error`), DO NOT PANIC. Read the traceback, understand why the Blender API call failed, rewrite the script, and try again. 
+- **Context Overrides**: Always use `bpy.context` carefully as Blender is running in background (headless) mode. Some `bpy.ops` require specific context overrides when run headlessly.
+- **Debugging**: Use `print()` in your Python scripts if you need to fetch specific data (like mesh names or vertex counts) back from Blender into your context.
