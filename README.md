@@ -1,24 +1,47 @@
-# Articulous: Autonomous Agentic Animation Studio
+# 🎬 Articulous: The Autonomous AI Animation Studio
 
-Articulous is a plugin for Google Antigravity that transforms your AI assistant into a full-pipeline 3D Animator connected directly to Blender.
+**Articulous** is a plugin that turns your Google Antigravity AI into a professional 3D animator. 
 
-## Installation
+Just type a prompt, and the AI will invisibly open Blender in the background, build the scene, ask for your feedback, and render a final MP4 video in styles like *Genshin Impact*, *Pixar*, or *Cyberpunk*. No Blender experience required!
 
-1. **Install Dependencies**: The MCP server requires the `mcp` Python package.
-   Run: `pip install -r requirements.txt`
+---
 
-2. **Ensure Blender is in PATH**: The plugin launches Blender in the background. You must ensure `blender` is accessible from your command line / terminal. 
-   *(On Windows, add `C:\Program Files\Blender Foundation\Blender X.X` to your Environment Variables PATH).*
+## 🛠️ Step-by-Step Installation
 
-3. **Install the Plugin**: 
-   Move this entire `articulous` folder into your Antigravity global plugins directory:
-   `~/.gemini/config/plugins/articulous`
+Don't worry if you aren't a programmer! Just follow these 4 simple steps to get set up:
 
-4. **Restart Antigravity**.
+### Step 1: Install the Python Requirements
+Open your computer's Terminal (or Command Prompt) and copy-paste this exact command, then hit Enter:
+```cmd
+pip install mcp "imageio[ffmpeg]"
+```
+*(This installs the background communication tool and the video stitcher).*
 
-## Usage
+### Step 2: Install the Plugin into Antigravity
+1. Download this GitHub repository to your computer as a folder.
+2. Open your File Explorer and go to your Antigravity configuration folder. On Windows, this is usually:
+   `C:\Users\YOUR_USERNAME\.gemini\config\plugins\` 
+   *(Note: If the `plugins` folder doesn't exist yet, just create it).*
+3. Drag and drop the `Articulous` folder you downloaded straight into that `plugins` folder.
 
-Simply open a new Antigravity conversation and type:
-> "Make a 3D animation of a bouncing ball."
+### Step 3: Tell Windows where Blender is
+The AI needs to know where Blender lives on your computer so it can run it in the background:
+1. Press your **Windows Key**, type **Environment Variables**, and hit Enter.
+2. Click the **Environment Variables...** button at the bottom.
+3. In the list, double-click on the one named **Path**.
+4. Click **New** and paste the folder where your Blender program is installed. (Usually something like `C:\Program Files\Blender Foundation\Blender 4.2` or wherever you installed Blender 5).
+5. Click **OK** on all the windows to save.
 
-Articulous will take over, design the scene, run introspection checks, ask for your approval on blockouts, and render the final animation autonomously using your existing Antigravity account limits!
+### Step 4: Restart
+Completely close the Antigravity application and open it again so it loads your new plugin.
+
+---
+
+## 🚀 How to Use It
+
+It is magically simple. 
+
+1. Open a new chat in Antigravity.
+2. Type a message like: 
+   > *"Articulous, make a 3D animation of a glowing neon car driving down a street."*
+3. The AI will immediately take over! It will ask you which art style you want, show you low-poly preview screenshots for your approval, and finally give you the finished MP4 video!
