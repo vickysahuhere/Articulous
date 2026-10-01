@@ -1,0 +1,14 @@
+{
+  "name": "articulous",
+  "description": "Articulous: Autonomous Agentic Animation Studio plugin for Antigravity",
+  "version": "1.0.0",
+  "skills": [
+    "skills/articulous-animator/SKILL.md"
+  ],
+  "mcpServers": {
+    "articulous-blender-bridge": {
+      "command": "python",
+      "args": ["${plugin_dir}/mcp-server/articulous_server.py"]
+    }
+  }
+}
