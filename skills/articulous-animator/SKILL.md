@@ -28,10 +28,12 @@ When you are activated, you MUST follow these phases in order. Do not skip steps
 2. **MANDATORY SKY/WORLD**: You MUST write Python to set up a `Sky Texture` node (Nishita) in the World Shader, or download an HDRI. The background cannot be empty or black.
 3. **LIGHTING**: Add a Sun Light and Area Lights. Never leave objects unlit.
 4. **Art Style**: Enforce the chosen style (e.g., Genshin cel-shading).
+5. **GRAVITY FIX**: Run the `articulous_fix_floating_objects` tool. This will run a brief physics simulation to snap all your models to the floor so they don't look like they are floating in mid-air.
+6. **COMPOSITING**: Run the `articulous_apply_compositing_effects` tool to add professional Bloom and Chromatic Aberration to the render pipeline.
 
 ### Phase 4: Rigging, Camera & Animation
 1. **Minimum Duration Check**: You MUST set `bpy.context.scene.frame_end` to at least 150 (for a minimum 6-second video). Stop making 1-second loops.
-2. **Cinematic Cameras**: Animate the camera sweeping through the scene.
+2. **Cinematic Cameras**: DO NOT guess camera math. Use the `articulous_add_cinematic_camera_rig` tool. Provide it with the name of the main object you want to focus on. It will automatically build a sweeping Bezier tracking rig.
 3. Run `articulous_run_blender_script` to render the MP4 to the project folder.
 4. Provide the user with the absolute path.
 

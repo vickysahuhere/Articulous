@@ -143,5 +143,114 @@ def articulous_create_project_folder(project_name: str) -> str:
     os.makedirs(project_dir, exist_ok=True)
     return project_dir
 
+@mcp.tool()
+def articulous_add_cinematic_camera_rig(target_name: str, radius: float = 10.0, height: float = 5.0) -> str:
+    """Creates a cinematic camera rig. It spawns a circular Bezier curve around the origin, attaches a camera to it, and tracks the camera to the specified target object."""
+    script = f'''
+import bpy
+import math
+
+# Find target
+target = bpy.data.objects.get("{target_name}")
+if not target:
+    print(f"Error: Could not find target object '{target_name}'")
+else:
+    # Create circular path
+    bpy.ops.curve.primitive_bezier_circle_add(radius={radius}, location=(0, 0, {height}))
+    path = bpy.context.active_object
+    
+    # Create camera
+    bpy.ops.object.camera_add(location=(0, {radius}, {height}))
+    cam = bpy.context.active_object
+    bpy.context.scene.camera = cam
+    
+    # Constrain camera to path
+    constraint = cam.constraints.new('FOLLOW_PATH')
+    constraint.target = path
+    constraint.use_curve_follow = True
+    
+    # Animate path
+    path.data.path_duration = bpy.context.scene.frame_end
+    
+    # Track to target
+    track = cam.constraints.new('TRACK_TO')
+    track.target = target
+    track.track_axis = 'TRACK_NEGATIVE_Z'
+    track.up_axis = 'UP_Y'
+    
+    print("Cinematic Camera Rig added successfully.")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_apply_compositing_effects(bloom: bool = True, lens_distortion: bool = True) -> str:
+    """Automatically wires up Blender's compositor to add professional cinematic effects like Bloom (Glare) and Chromatic Aberration."""
+    script = f'''
+import bpy
+bpy.context.scene.use_nodes = True
+tree = bpy.context.scene.node_tree
+links = tree.links
+
+# Clear default nodes
+for n in tree.nodes: tree.nodes.remove(n)
+
+render_layers = tree.nodes.new('CompositorNodeRLayers')
+composite = tree.nodes.new('CompositorNodeComposite')
+last_node = render_layers
+
+if {bloom}:
+    glare = tree.nodes.new('CompositorNodeGlare')
+    glare.glare_type = 'FOG_GLOW'
+    glare.mix = -0.8
+    links.new(last_node.outputs[0], glare.inputs[0])
+    last_node = glare
+
+if {lens_distortion}:
+    lens = tree.nodes.new('CompositorNodeLensdist')
+    lens.inputs['Dispersion'].default_value = 0.05
+    lens.inputs['Projector'].default_value = True
+    links.new(last_node.outputs[0], lens.inputs[0])
+    last_node = lens
+
+links.new(last_node.outputs[0], composite.inputs[0])
+print("Cinematic compositing applied.")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_fix_floating_objects() -> str:
+    """Uses the physics engine to calculate gravity for 20 frames, letting all objects fall naturally to the floor, then bakes their resting positions. Prevents floating objects."""
+    script = '''
+import bpy
+
+# Add floor if missing
+if "CollisionFloor" not in bpy.data.objects:
+    bpy.ops.mesh.primitive_plane_add(size=100, location=(0,0,0))
+    floor = bpy.context.active_object
+    floor.name = "CollisionFloor"
+    bpy.ops.rigidbody.object_add()
+    floor.rigid_body.type = 'PASSIVE'
+    floor.hide_render = True
+
+# Add active physics to all meshes above Z=0
+for obj in bpy.context.scene.objects:
+    if obj.type == 'MESH' and obj.name != "CollisionFloor" and obj.location.z > 0.1:
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.rigidbody.object_add()
+        obj.rigid_body.type = 'ACTIVE'
+
+# Bake to frame 20 and apply transforms
+bpy.context.scene.frame_set(20)
+for obj in bpy.context.scene.objects:
+    if obj.type == 'MESH' and obj.rigid_body and obj.rigid_body.type == 'ACTIVE':
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.object.visual_transform_apply()
+        bpy.ops.rigidbody.object_remove()
+
+bpy.context.scene.frame_set(1)
+print("Gravity settled. Floating objects fixed.")
+'''
+    return run_blender_headless(script)
+
 if __name__ == "__main__":
     mcp.run()
