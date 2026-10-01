@@ -48,4 +48,5 @@ It is magically simple.
 1. Open a new chat in Antigravity.
 2. Type a message like: 
    > *"Articulous, make a 3D animation of a glowing neon car driving down a street."*
-3. The AI will immediately take over! It will ask you which art style you want, show you low-poly preview screenshots for your approval, and finally give you the finished MP4 video!
+3. The AI will immediately take over! It will ask you which art style you want, show you low-poly preview screenshots for your approval, and automatically render the finished MP4 video.
+4. **Find your video:** Articulous automatically creates a folder on your computer at `Desktop/Articulous_Projects/`. Inside, you will find a dedicated folder for your animation containing the final `.mp4` video, the preview images, and the raw `.blend` files!
