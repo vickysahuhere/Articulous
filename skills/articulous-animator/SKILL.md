@@ -29,7 +29,8 @@ When you are activated, you MUST follow these phases in order. Do not skip steps
 
 ### Phase 3: High-Quality Assembly (ART STYLE ENFORCEMENT)
 1. Once approved, replace the blockout shapes with complex models. 
-2. **Mandatory Art Style Implementation**: You must write Blender Python scripts that heavily enforce the chosen art style:
+2. **External & Procedural Models**: If you (the user) provide a file path or URL to an external 3D model (.obj, .fbx, etc.), the AI will use Blender Python to import it into the scene. Otherwise, it will procedurally generate it.
+3. **Mandatory Art Style Implementation**: Write Blender Python scripts that heavily enforce the chosen art style:
     - **If Genshin Impact:** Use Cel-Shading (Shader to RGB + Constant ColorRamp). Create Outlines using the "Inverted Hull" method (Solidify modifier, flipped normals, black unlit emission material).
     - **If Low Poly Retro:** Use Shade Flat on all meshes. Decimate geometry to be very low poly. Disable anti-aliasing in render settings.
     - **If Pixar / Disney 3D:** Add Bevel modifiers to soften all hard edges. Use Principled BSDF with high Subsurface Scattering. Use large soft area lights.
