@@ -21,6 +21,23 @@ import bpy
 import os
 import sys
 
+# Force GPU Compute (OPTIX/CUDA)
+try:
+    prefs = bpy.context.preferences.addons['cycles'].preferences
+    prefs.compute_device_type = 'OPTIX'
+    bpy.context.scene.cycles.device = 'GPU'
+    for d in prefs.get_devices()[0]:
+        d.use = True
+except Exception:
+    try:
+        prefs = bpy.context.preferences.addons['cycles'].preferences
+        prefs.compute_device_type = 'CUDA'
+        bpy.context.scene.cycles.device = 'GPU'
+        for d in prefs.get_devices()[0]:
+            d.use = True
+    except Exception:
+        pass
+
 # Catch all output
 try:
     if os.path.exists(r'{WORKING_BLEND}'):
