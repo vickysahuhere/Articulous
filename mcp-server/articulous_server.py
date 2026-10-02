@@ -21,22 +21,35 @@ import bpy
 import os
 import sys
 
-# Force GPU Compute (OPTIX/CUDA)
+# Force Dedicated GPU Compute (OPTIX/CUDA) and Disable Integrated Graphics
 try:
     prefs = bpy.context.preferences.addons['cycles'].preferences
-    prefs.compute_device_type = 'OPTIX'
-    bpy.context.scene.cycles.device = 'GPU'
-    for d in prefs.get_devices()[0]:
-        d.use = True
-except Exception:
+    
+    # Try OptiX first, fallback to CUDA
+    compute_type = 'OPTIX'
     try:
-        prefs = bpy.context.preferences.addons['cycles'].preferences
+        prefs.compute_device_type = 'OPTIX'
+    except:
         prefs.compute_device_type = 'CUDA'
-        bpy.context.scene.cycles.device = 'GPU'
-        for d in prefs.get_devices()[0]:
+        compute_type = 'CUDA'
+        
+    bpy.context.scene.cycles.device = 'GPU'
+    
+    # Refresh devices
+    prefs.get_devices()
+    
+    # Enable ONLY dedicated GPUs, disable Intel/AMD integrated graphics and CPU
+    for d in prefs.devices:
+        d_name = d.name.upper()
+        if 'INTEL' in d_name or 'UHD' in d_name or 'AMD' in d_name or 'RADEON' in d_name:
+            d.use = False
+        elif d.type == 'CPU':
+            d.use = False
+        else:
+            # Assume it's the NVIDIA/Dedicated card
             d.use = True
-    except Exception:
-        pass
+except Exception as e:
+    print(f"Warning: GPU configuration failed: {e}")
 
 # Catch all output
 try:
