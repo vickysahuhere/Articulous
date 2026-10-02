@@ -1019,8 +1019,71 @@ except Exception as e:
     return run_blender_headless(script)
 
 
+@mcp.tool()
+def articulous_render_final(filepath: str, resolution_x: int = 1920, resolution_y: int = 1080, samples: int = 128, is_animation: bool = False) -> str:
+    '''A highly optimized, GPU-accelerated rendering system for final quality output.'''
+    filepath = filepath.replace("\\", "/")
+    script = f'''
+import bpy
+import time
+
+print("Initializing High-Performance Rendering System...")
+
+# 1. Switch to Cycles (Eevee headless is often unaccelerated)
+bpy.context.scene.render.engine = 'CYCLES'
+
+# 2. Force GPU Compute
+bpy.context.scene.cycles.device = 'GPU'
+prefs = bpy.context.preferences.addons['cycles'].preferences
+
+try:
+    prefs.compute_device_type = 'OPTIX'
+except:
+    prefs.compute_device_type = 'CUDA'
+
+prefs.get_devices()
+for d in prefs.devices:
+    if 'INTEL' in d.name.upper() or 'UHD' in d.name.upper() or d.type == 'CPU':
+        d.use = False
+    else:
+        d.use = True
+        print(f"Hardware Acceleration enabled on: {d.name}")
+
+# 3. Optimize Render Settings for Speed
+bpy.context.scene.cycles.samples = {samples}
+bpy.context.scene.cycles.use_denoising = True
+bpy.context.scene.cycles.denoiser = 'OPTIX'
+bpy.context.scene.render.resolution_x = {resolution_x}
+bpy.context.scene.render.resolution_y = {resolution_y}
+bpy.context.scene.render.resolution_percentage = 100
+
+# 4. Performance Tweaks (Tile sizes, BVH, Light Paths)
+bpy.context.scene.render.threads_mode = 'AUTO'
+bpy.context.scene.cycles.max_bounces = 4
+bpy.context.scene.cycles.diffuse_bounces = 2
+bpy.context.scene.cycles.glossy_bounces = 2
+bpy.context.scene.cycles.transparent_max_bounces = 4
+bpy.context.scene.cycles.transmission_bounces = 2
+bpy.context.scene.render.use_persistent_data = True
+
+bpy.context.scene.render.filepath = '{filepath}'
+
+print(f"Starting render to {filepath}...")
+start_time = time.time()
+
+if {str(is_animation)}:
+    bpy.ops.render.render(animation=True)
+else:
+    bpy.ops.render.render(write_still=True)
+
+print(f"Render completed in {{round(time.time() - start_time, 2)}} seconds.")
+'''
+    return run_blender_headless(script)
+
+
 if __name__ == "__main__":
     mcp.run()
+
 
 
 

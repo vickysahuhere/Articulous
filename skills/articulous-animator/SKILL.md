@@ -75,3 +75,4 @@ Before calling it complete, you MUST verify that you actually built what you pro
 ## FAILURE RECOVERY
 If a Python script fails, capture the `stderr` traceback. Identify the failing line. DO NOT restart the entire process. The scene state is preserved in `working_state.blend`. Write a corrected script and retry just that component.
 
+
