@@ -435,5 +435,78 @@ print("VISION_CAPTURE_SUCCESS")
     else:
         return f"Failed to capture screenshot. Error: {result}"
 
+@mcp.tool()
+def articulous_create_primitive(prim_type: str, name: str, size: float = 1.0, location: list = [0,0,0]) -> str:
+    """Creates a 3D primitive without needing raw python (types: cube, sphere, cylinder, plane)."""
+    script = f'''
+import bpy
+try:
+    if "{prim_type}" == "cube":
+        bpy.ops.mesh.primitive_cube_add(size={size}, location=({location[0]}, {location[1]}, {location[2]}))
+    elif "{prim_type}" == "sphere":
+        bpy.ops.mesh.primitive_uv_sphere_add(radius={size}/2, location=({location[0]}, {location[1]}, {location[2]}))
+    elif "{prim_type}" == "cylinder":
+        bpy.ops.mesh.primitive_cylinder_add(radius={size}/2, depth={size}, location=({location[0]}, {location[1]}, {location[2]}))
+    elif "{prim_type}" == "plane":
+        bpy.ops.mesh.primitive_plane_add(size={size}, location=({location[0]}, {location[1]}, {location[2]}))
+    
+    obj = bpy.context.active_object
+    obj.name = "{name}"
+    print(f"SUCCESS: Created {{obj.name}}")
+except Exception as e:
+    print(f"ERROR: {{str(e)}}")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_apply_material(object_name: str, mat_type: str, r: float=1.0, g: float=1.0, b: float=1.0) -> str:
+    """Applies a preset material (metal, glass, wood, glow) to an object."""
+    script = f'''
+import bpy
+obj = bpy.data.objects.get("{object_name}")
+if not obj:
+    print("ERROR: Object not found")
+else:
+    mat = bpy.data.materials.new(name="{mat_type}_mat")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    bsdf.inputs['Base Color'].default_value = ({r}, {g}, {b}, 1.0)
+    
+    if "{mat_type}" == "metal":
+        bsdf.inputs['Metallic'].default_value = 1.0
+        bsdf.inputs['Roughness'].default_value = 0.2
+    elif "{mat_type}" == "glass":
+        bsdf.inputs['Transmission'].default_value = 1.0
+        bsdf.inputs['Roughness'].default_value = 0.05
+    elif "{mat_type}" == "glow":
+        bsdf.inputs['Emission'].default_value = ({r}, {g}, {b}, 1.0)
+        bsdf.inputs['Emission Strength'].default_value = 5.0
+        
+    if len(obj.data.materials) == 0:
+        obj.data.materials.append(mat)
+    else:
+        obj.data.materials[0] = mat
+    print("SUCCESS: Material applied")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_export_model(filepath: str, format: str = "glb") -> str:
+    """Exports the scene (format: glb, fbx, obj)."""
+    script = f'''
+import bpy
+try:
+    if "{format}" == "glb":
+        bpy.ops.export_scene.gltf(filepath=r"{filepath}", export_format='GLB')
+    elif "{format}" == "fbx":
+        bpy.ops.export_scene.fbx(filepath=r"{filepath}")
+    elif "{format}" == "obj":
+        bpy.ops.export_scene.obj(filepath=r"{filepath}")
+    print(f"SUCCESS: Exported to {{r'{filepath}'}}")
+except Exception as e:
+    print(f"ERROR: {{str(e)}}")
+'''
+    return run_blender_headless(script)
+
 if __name__ == "__main__":
     mcp.run()
