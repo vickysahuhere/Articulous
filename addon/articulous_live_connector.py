@@ -1,8 +1,8 @@
 bl_info = {
-    "name": "MCP Connector v2",
+    "name": "Articulous Live Connector",
     "blender": (4, 0, 0),
     "category": "Interface",
-    "author": "Antigravity",
+    "author": "Articulous",
     "description": "WebSocket server for MCP integration with Antigravity IDE",
     "version": (2, 1, 0),
 }
@@ -1412,11 +1412,11 @@ class MCP_OT_StopServer(bpy.types.Operator):
 
 class MCP_PT_Panel(bpy.types.Panel):
     """MCP Panel in 3D View Sidebar"""
-    bl_label = "MCP Connector v2"
+    bl_label = "Articulous Live Connector"
     bl_idname = "MCP_PT_main_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "MCP"
+    bl_category = "Articulous"
 
     def draw(self, context):
         layout = self.layout
@@ -1451,3 +1451,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
