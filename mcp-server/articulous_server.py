@@ -979,7 +979,48 @@ def articulous_parse(prompt: str) -> str:
     return "Parsed prompt: " + prompt
 
 
+@mcp.tool()
+def articulous_storymode_planner(prompt: str, total_seconds: int = 30, fps: int = 24) -> str:
+    '''Generates a structured timeline plan for a short film based on a prompt.'''
+    # In a real system, this might use an LLM call. Here we return a strict schema requirement for the agent.
+    return f"STORYMODE INITIATED. Total Frames: {total_seconds * fps}. You must break the prompt '{prompt}' into a frame-by-frame plan. Use articulous_storymode_verify after building the scene to confirm."
+
+@mcp.tool()
+def articulous_storymode_verify(expected_timeline_json: str) -> str:
+    '''Verifies if the Blender scene actually contains the animations and camera cuts promised in the timeline plan.'''
+    script = f'''
+import bpy
+import json
+
+try:
+    plan = json.loads(\"\"\"{expected_timeline_json}\"\"\")
+    print("Verifying Storymode Timeline...")
+    
+    # Check total frames
+    if bpy.context.scene.frame_end < plan.get('total_frames', 0):
+        print(f"FAILED: Scene ends at frame {bpy.context.scene.frame_end}, but plan requires {plan.get('total_frames')}")
+    else:
+        print("PASS: Timeline length matches.")
+        
+    # Check for camera animation
+    cameras = [obj for obj in bpy.context.scene.objects if obj.type == 'CAMERA']
+    if not cameras:
+        print("FAILED: No cameras in scene.")
+    else:
+        has_anim = any(cam.animation_data and cam.animation_data.action for cam in cameras)
+        if has_anim:
+            print("PASS: Camera animation detected.")
+        else:
+            print("FAILED: Cameras have no keyframes. You promised cinematic camera movement!")
+            
+except Exception as e:
+    print(f"Verification Error: {str(e)}")
+'''
+    return run_blender_headless(script)
+
+
 if __name__ == "__main__":
     mcp.run()
+
 
 

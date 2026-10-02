@@ -24,6 +24,15 @@ Before doing anything, you MUST ask the user which mode they want to run in. Exp
 
 Wait for the user's response before proceeding.
 
+## 1.5 STORYMODE TIMELINE PLANNER (NEW)
+If the user's prompt involves a video or animation (like "Create a 30-second short film"), you MUST initiate STORYMODE.
+1. Run the rticulous_storymode_planner tool with the user's prompt to generate a timeline structure.
+2. Output a strictly formatted TIMELINE PLAN to the user. Example:
+   - 0-4 SECONDS: Scene 1, Camera pans right.
+   - 4-8 SECONDS: Scene 2, Object enters frame.
+3. You must calculate exact frames (e.g. 0-4s at 24fps = 0-96 frames).
+4. You MUST NOT start modeling until the user approves the Timeline Plan.
+
 ## 2. INTENT & ASSET PLANNER
 When you receive a prompt, DO NOT start writing Blender scripts. 
 1. Run `articulous_create_project_folder` immediately.
@@ -51,6 +60,11 @@ After generating a component:
 2. Use `articulous_import_polyhaven_asset` to populate the background with models (e.g., "street", "building", "trash").
 3. Run `articulous_fix_floating_objects` to snap models to the floor using physics.
 
+## 5.5 STORYMODE VERIFICATION
+Before calling it complete, you MUST verify that you actually built what you promised.
+1. Run rticulous_storymode_verify passing your JSON timeline plan.
+2. If the tool outputs "FAILED", you must read the failure reason (e.g., "No cameras in scene", "Scene ends too early", "No camera animation"), fix the Python script, and re-run verification. You cannot proceed to Final Render until verification outputs "PASS".
+
 ## 6. CINEMATOGRAPHY & RENDERING
 1. Add cinematic lighting (Sun + Area lights).
 2. Set the frame end (`bpy.context.scene.frame_end`) to at least 150 frames.
@@ -60,3 +74,4 @@ After generating a component:
 
 ## FAILURE RECOVERY
 If a Python script fails, capture the `stderr` traceback. Identify the failing line. DO NOT restart the entire process. The scene state is preserved in `working_state.blend`. Write a corrected script and retry just that component.
+
