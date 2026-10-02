@@ -1,52 +1,73 @@
-# 🎬 Articulous: The Autonomous AI Animation Studio
+﻿# 🎬 Articulous: The Ultimate Autonomous AI Animation Studio
 
-**Articulous** is a plugin that turns your Google Antigravity AI into a professional 3D animator. 
+**Articulous** is an advanced AI plugin that turns Google Antigravity into a professional 3D artist, animator, and director. 
 
-Just type a prompt, and the AI will invisibly open Blender in the background, build the scene, ask for your feedback, and render a final MP4 video in styles like *Genshin Impact*, *Pixar*, or *Cyberpunk*. No Blender experience required!
+Whether you want the AI to secretly build and render a full animated short film in the background, or you want to sit side-by-side with the AI and watch it sculpt in your live Blender window, Articulous handles it all with **100% feature parity**.
+
+---
+
+## 🌟 The Two Modes of Articulous
+
+When you give Articulous a prompt, it will ask you how you want to work:
+
+### 1. Articulous Live (Interactive Mode)
+* **What it is:** You open Blender, start the bundled Articulous Live server, and the AI connects directly to your viewport.
+* **Why use it:** You can literally watch the AI build, sculpt, and texture your scene in real-time. It has 17 dedicated tools for procedural generation, mesh optimization, and blueprinting.
+* **Requirements:** You must have Blender open and click "Start Server".
+
+### 2. Articulous Zero (Headless Render Farm Mode)
+* **What it is:** You type a prompt and walk away. The AI invisibly boots Blender in the background, builds the scene, and stitches a final MP4 video.
+* **Why use it:** Fully automatic. Zero Blender knowledge required. Thanks to recent updates, Articulous Zero now uses the **exact same 17 advanced tools** as Live Mode! 
+* **The GPU Render Engine:** Zero mode features rticulous_render_final, a high-performance system that forcefully disables integrated graphics, locks onto your dedicated NVIDIA GPU, and uses OptiX raytracing for lightning-fast renders.
+
+### 🎬 STORYMODE
+If you ask for an animation (e.g. "Create a 30-second short film"), Articulous automatically enters **STORYMODE**. 
+1. **The Planner:** The AI mathematically breaks your prompt into a strict frame-by-frame timeline.
+2. **The Verifier:** Before rendering, the AI runs a rigorous inspection on the scene. If it forgot to animate the camera, the Verifier fails, and the AI is forced to fix its code before rendering!
 
 ---
 
 ## 🛠️ Step-by-Step Installation
 
-Don't worry if you aren't a programmer! Just follow these 4 simple steps to get set up:
-
-### Step 1: Install the Python Requirements
-Open your computer's Terminal (or Command Prompt) and copy-paste this exact command, then hit Enter:
-```cmd
+### Step 1: Install Python Requirements
+Open your computer's Terminal (or Command Prompt) and run:
+`cmd
 pip install mcp "imageio[ffmpeg]"
-```
-*(This installs the background communication tool and the video stitcher).*
+`
 
-### Step 2: Download and Install the Plugin
-1. Open your Terminal (or Command Prompt).
-2. Copy-paste this exact command to download the code:
-   ```cmd
+### Step 2: Install the Plugin into Antigravity
+1. Open your Terminal and clone the repository:
+   `cmd
    git clone https://github.com/vickysahuhere/Articulous.git
-   ```
-3. Open your File Explorer and find the `Articulous` folder you just downloaded.
-4. Move that entire `Articulous` folder into your Antigravity plugins directory. On Windows, this is usually located here:
-   `C:\Users\YOUR_USERNAME\.gemini\config\plugins\` 
-   *(Note: If the `plugins` folder doesn't exist yet, just create it).*
+   `
+2. Move the entire downloaded Articulous folder into your Antigravity plugins directory. On Windows, this is usually:
+   C:\Users\YOUR_USERNAME\.gemini\config\plugins\
 
 ### Step 3: Tell Windows where Blender is
-The AI needs to know where Blender lives on your computer so it can run it in the background:
+For Articulous Zero (Headless Mode) to work, it needs to find Blender:
 1. Press your **Windows Key**, type **Environment Variables**, and hit Enter.
-2. Click the **Environment Variables...** button at the bottom.
-3. In the list, double-click on the one named **Path**.
-4. Click **New** and paste the folder where your Blender program is installed. (Usually something like `C:\Program Files\Blender Foundation\Blender 4.2` or wherever you installed Blender 5).
-5. Click **OK** on all the windows to save.
+2. Click **Environment Variables...** at the bottom.
+3. In the list, double-click **Path**.
+4. Click **New** and paste the folder where your Blender program is installed (e.g., C:\Program Files\Blender Foundation\Blender 4.2).
+5. Click **OK** to save.
 
-### Step 4: Restart
-Completely close the Antigravity application and open it again so it loads your new plugin.
+### Step 4: Install the Live Add-on (For Interactive Mode)
+If you want to use the live, real-time mode, you must install the bundled Blender add-on:
+1. Open Blender.
+2. Go to **Edit > Preferences > Add-ons**.
+3. Click **Install...** at the top right, navigate to the Articulous folder you just cloned, select ddon/articulous_live_connector.py, and click **Install Add-on**.
+4. **Check the box** next to "Interface: Articulous Live Connector" to enable it.
+5. In your 3D Viewport, press **N** to open the side panel, click the **Articulous** tab, and click **Start Server**.
+
+### Step 5: Restart
+Completely close and reopen the Antigravity application so it loads the new plugin.
 
 ---
 
 ## 🚀 How to Use It
 
-It is magically simple. 
-
 1. Open a new chat in Antigravity.
 2. Type a message like: 
    > *"Articulous, make a 3D animation of a glowing neon car driving down a street."*
-3. The AI will immediately take over! It will ask you which art style you want, show you low-poly preview screenshots for your approval, and automatically render the finished MP4 video.
-4. **Find your video:** Articulous automatically creates a folder on your computer at `Desktop/Articulous_Projects/`. Inside, you will find a dedicated folder for your animation containing the final `.mp4` video, the preview images, and the raw `.blend` files!
+3. The AI will ask if you want to use Live Mode or Zero Mode.
+4. **Find your renders:** Articulous automatically saves everything (videos, preview screenshots, and raw .blend files) to Desktop/Articulous_Projects/.
