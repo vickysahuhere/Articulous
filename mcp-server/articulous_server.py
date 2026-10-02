@@ -406,5 +406,34 @@ elif asset_type == "models":
     except Exception as e:
         return f"Error connecting to PolyHaven API: {str(e)}"
 
+@mcp.tool()
+def articulous_vision_inspect() -> str:
+    """
+    Takes a lightning-fast OpenGL viewport screenshot of the current scene and returns the absolute path to the image.
+    Use this tool to visually inspect your work and ensure proportions, lighting, and placement are correct.
+    """
+    import os
+    import tempfile
+    
+    filepath = os.path.join(tempfile.gettempdir(), "articulous_vision_inspection.png").replace("\\", "/")
+    
+    script = f'''
+import bpy
+import os
+
+# Set up quick viewport render settings
+bpy.context.scene.render.filepath = '{filepath}'
+bpy.context.scene.render.image_settings.file_format = 'PNG'
+
+# We use the fast OpenGL render instead of a full Cycles render for instant feedback
+bpy.ops.render.opengl(write_still=True)
+print("VISION_CAPTURE_SUCCESS")
+'''
+    result = run_blender_headless(script)
+    if "VISION_CAPTURE_SUCCESS" in result:
+        return f"Screenshot saved to: {filepath} - Please use your view_file or image reading capabilities to look at this image and critique the geometry."
+    else:
+        return f"Failed to capture screenshot. Error: {result}"
+
 if __name__ == "__main__":
     mcp.run()
