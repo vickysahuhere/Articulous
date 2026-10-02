@@ -269,5 +269,129 @@ print("Gravity settled. Floating objects fixed.")
 '''
     return run_blender_headless(script)
 
+@mcp.tool()
+def articulous_get_mesh_stats(object_name: str) -> str:
+    """Returns detailed geometric statistics for a specific mesh object (vertices, polygons, bounding box dimensions, location). Use this to mathematically validate your modeling proportions."""
+    script = f'''
+import bpy
+import json
+
+obj = bpy.data.objects.get("{object_name}")
+if not obj or obj.type != 'MESH':
+    print(json.dumps({{"error": f"Object '{object_name}' not found or is not a mesh."}}))
+else:
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    eval_obj = obj.evaluated_get(depsgraph)
+    mesh = eval_obj.to_mesh()
+    
+    stats = {{
+        "name": obj.name,
+        "vertices": len(mesh.vertices),
+        "polygons": len(mesh.polygons),
+        "dimensions": [round(obj.dimensions.x, 3), round(obj.dimensions.y, 3), round(obj.dimensions.z, 3)],
+        "location": [round(obj.location.x, 3), round(obj.location.y, 3), round(obj.location.z, 3)],
+        "modifiers": [mod.name for mod in obj.modifiers]
+    }}
+    eval_obj.to_mesh_clear()
+    print("---MESH STATS---")
+    print(json.dumps(stats, indent=2))
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_import_polyhaven_asset(asset_type: str, query: str) -> str:
+    """
+    Searches the free PolyHaven API for an asset (types: 'models', 'hdris', 'textures').
+    If found, it writes a Blender Python script to download and import it into the scene.
+    Returns the python code snippet you need to run via articulous_run_blender_script.
+    """
+    import urllib.request
+    import json
+    
+    if asset_type not in ['models', 'hdris', 'textures']:
+        return "Error: asset_type must be 'models', 'hdris', or 'textures'"
+        
+    try:
+        req = urllib.request.Request(f"https://api.polyhaven.com/assets?t={asset_type}&search={urllib.parse.quote(query)}", headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode())
+            
+        if not data:
+            return f"No {asset_type} found for query '{query}' on PolyHaven."
+            
+        # Get the first result's ID
+        asset_id = list(data.keys())[0]
+        
+        # We return a Blender script that the AI can run to fetch and load the asset.
+        script = f'''
+import bpy
+import urllib.request
+import json
+import os
+import tempfile
+
+asset_id = "{asset_id}"
+asset_type = "{asset_type}"
+
+print(f"Fetching {{asset_type}} '{{asset_id}}' from PolyHaven...")
+req = urllib.request.Request(f"https://api.polyhaven.com/files/{{asset_id}}", headers={{'User-Agent': 'Mozilla/5.0'}})
+with urllib.request.urlopen(req) as response:
+    files_data = json.loads(response.read().decode())
+
+temp_dir = tempfile.gettempdir()
+
+if asset_type == "hdris":
+    # Download the 2k EXR
+    url = files_data["hdri"]["2k"]["exr"]["url"]
+    filepath = os.path.join(temp_dir, f"{{asset_id}}.exr")
+    if not os.path.exists(filepath):
+        urllib.request.urlretrieve(url, filepath)
+    
+    # Setup World
+    world = bpy.context.scene.world
+    world.use_nodes = True
+    tree = world.node_tree
+    for n in tree.nodes: tree.nodes.remove(n)
+    
+    tex_node = tree.nodes.new('ShaderNodeTexEnvironment')
+    tex_node.image = bpy.data.images.load(filepath)
+    bg_node = tree.nodes.new('ShaderNodeBackground')
+    out_node = tree.nodes.new('ShaderNodeOutputWorld')
+    
+    tree.links.new(tex_node.outputs['Color'], bg_node.inputs['Color'])
+    tree.links.new(bg_node.outputs['Background'], out_node.inputs['Surface'])
+    print(f"HDRI {{asset_id}} loaded and applied to World.")
+
+elif asset_type == "models":
+    # Get GLTF/Blend if available, fallback to FBX
+    url = None
+    if "blend" in files_data:
+        # Complex to append, so we prefer GLTF
+        pass
+    if "gltf" in files_data:
+        url = files_data["gltf"]["url"]
+        ext = ".gltf"
+    elif "fbx" in files_data:
+        url = files_data["fbx"]["url"]
+        ext = ".fbx"
+        
+    if url:
+        filepath = os.path.join(temp_dir, f"{{asset_id}}{{ext}}")
+        if not os.path.exists(filepath):
+            urllib.request.urlretrieve(url, filepath)
+        
+        if ext == ".gltf":
+            bpy.ops.import_scene.gltf(filepath=filepath)
+        elif ext == ".fbx":
+            bpy.ops.import_scene.fbx(filepath=filepath)
+        print(f"Model {{asset_id}} imported successfully.")
+    else:
+        print("No supported model format (GLTF/FBX) found for this asset.")
+'''
+        return f"Asset '{asset_id}' found! Execute this exact python script via `articulous_run_blender_script` to download and import it into your scene:\n\n```python\n{script}\n```"
+
+    except Exception as e:
+        return f"Error connecting to PolyHaven API: {str(e)}"
+
 if __name__ == "__main__":
     mcp.run()
