@@ -866,8 +866,78 @@ else:
     return run_blender_headless(script)
 
 
+@mcp.tool()
+def articulous_apply_kinematics(object_name: str, behavior_type: str, axis: str = "Z", speed: float = 1.0, amplitude: float = 1.0) -> str:
+    '''Universal physics/animation engine for thousands of objects. Applies standard mechanical behaviors to an object.'''
+    script = f'''
+import bpy
+import math
+
+obj = bpy.data.objects.get('{object_name}')
+if obj:
+    behavior = '{behavior_type}'.upper()
+    axis = '{axis}'.upper()
+    axis_idx = 0 if axis == 'X' else 1 if axis == 'Y' else 2
+    
+    # Ensure animation data exists
+    if not obj.animation_data:
+        obj.animation_data_create()
+    if not obj.animation_data.action:
+        obj.animation_data.action = bpy.data.actions.new(name=f"{{obj.name}}_Action")
+        
+    action = obj.animation_data.action
+    
+    if behavior == "CONTINUOUS_ROTATION":
+        # Used for wheels, helicopter blades, radar dishes, fans, turbines
+        fc = action.fcurves.find('rotation_euler', index=axis_idx)
+        if not fc:
+            fc = action.fcurves.new('rotation_euler', index=axis_idx)
+        # Use a Generator modifier for infinite math rotation
+        mod = fc.modifiers.new(type='GENERATOR')
+        mod.coefficients = (0.0, {speed} * 0.1)  # y = mx + b
+        print(f"Applied CONTINUOUS_ROTATION to {{object_name}} on {{axis}} axis.")
+        
+    elif behavior == "HOVER":
+        # Used for drones, sci-fi ships, magic items, boats on water
+        fc = action.fcurves.find('location', index=axis_idx)
+        if not fc:
+            fc = action.fcurves.new('location', index=axis_idx)
+        mod = fc.modifiers.new(type='BUILT_IN_FUNCTION')
+        mod.function_type = 'SINE'
+        mod.amplitude = {amplitude}
+        mod.phase_multiplier = {speed}
+        print(f"Applied HOVER (Sine Wave) to {{object_name}} on {{axis}} axis.")
+        
+    elif behavior == "HINGE_SWING":
+        # Used for doors, chests, trapdoors, pendulums
+        # Keyframe a 0 to 90 degree (or amplitude) swing over 60 frames
+        obj.rotation_euler[axis_idx] = 0.0
+        obj.keyframe_insert(data_path="rotation_euler", index=axis_idx, frame=1)
+        obj.rotation_euler[axis_idx] = math.radians({amplitude})
+        obj.keyframe_insert(data_path="rotation_euler", index=axis_idx, frame=60)
+        print(f"Applied HINGE_SWING to {{object_name}} on {{axis}} axis.")
+        
+    elif behavior == "WOBBLE":
+        # Used for handheld camera shake, turbulence, trembling
+        fc = action.fcurves.find('rotation_euler', index=axis_idx)
+        if not fc:
+            fc = action.fcurves.new('rotation_euler', index=axis_idx)
+        mod = fc.modifiers.new(type='NOISE')
+        mod.scale = 10.0 / {speed}
+        mod.strength = {amplitude} * 0.1
+        print(f"Applied NOISE/WOBBLE to {{object_name}} on {{axis}} axis.")
+        
+    else:
+        print(f"Unknown behavior type: {{behavior}}")
+else:
+    print(f"Object {{object_name}} not found.")
+'''
+    return run_blender_headless(script)
+
+
 if __name__ == "__main__":
     mcp.run()
+
 
 
 

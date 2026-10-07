@@ -67,7 +67,8 @@ After generating a component:
 
 ## 3. CAMERA & PHYSICS LOGIC
 - **Cameras:** ALWAYS use rticulous_setup_camera_tracking to lock the camera to the main moving object. NEVER forget the camera.
-- **Vehicles:** Use rticulous_animate_vehicle for cars. Do NOT attempt to manually keyframe wheel rotations or drift math; use the dedicated tool to ensure wheels spin forward, not backward.
+- **Vehicles:** Use rticulous_animate_vehicle for cars.
+- **Universal Object Physics:** Do NOT write manual rotation math for common objects. Use rticulous_apply_kinematics(object, behavior, axis). For example, if you download a Helicopter, apply CONTINUOUS_ROTATION on Z for the blades. If you download a Drone, apply HOVER on Z. If you download a door, apply HINGE_SWING. Rely on your semantic knowledge of reality to categorize objects into these behaviors! Do NOT attempt to manually keyframe wheel rotations or drift math; use the dedicated tool to ensure wheels spin forward, not backward.
 - **Timelines:** Ensure py.context.scene.frame_end exactly matches the speed/duration you promised the user. If they want 10 seconds at 24fps, frame_end MUST be 240.
 
 ## 5.5 STORYMODE VERIFICATION
