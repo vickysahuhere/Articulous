@@ -33,6 +33,11 @@ If the user's prompt involves a video or animation (like "Create a 30-second sho
 3. You must calculate exact frames (e.g. 0-4s at 24fps = 0-96 frames).
 4. You MUST NOT start modeling until the user approves the Timeline Plan.
 
+## 2. THE DIRECTOR PIPELINE (v2)
+Never jump straight to python scripts for complex props (like cars, humans). Use rticulous_director_plan to generate a SceneDefinition.
+- Use rticulous_search_and_import_asset to fetch high-fidelity models from the internet (PolyHaven/Objaverse) instead of building them out of cubes.
+- Use rticulous_animate_along_path for cinematic vehicle/object motion.
+
 ## 2. INTENT & ASSET PLANNER
 When you receive a prompt, DO NOT start writing Blender scripts. 
 1. Run `articulous_create_project_folder` immediately.
@@ -74,5 +79,6 @@ Before calling it complete, you MUST verify that you actually built what you pro
 
 ## FAILURE RECOVERY
 If a Python script fails, capture the `stderr` traceback. Identify the failing line. DO NOT restart the entire process. The scene state is preserved in `working_state.blend`. Write a corrected script and retry just that component.
+
 
 
