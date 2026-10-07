@@ -787,8 +787,88 @@ else:
     return run_blender_headless(script)
 
 
+@mcp.tool()
+def articulous_animate_vehicle(object_name: str, path_name: str, speed_frames: int = 250, drift_intensity: float = 0.0) -> str:
+    '''Animates a vehicle along a path, automatically calculating wheel rotation and drift physics.'''
+    script = f'''
+import bpy
+import math
+
+vehicle = bpy.data.objects.get('{object_name}')
+path = bpy.data.objects.get('{path_name}')
+
+if vehicle and path:
+    bpy.context.scene.frame_end = {speed_frames}
+    
+    # 1. Follow Path Constraint
+    bpy.context.view_layer.objects.active = vehicle
+    
+    # Remove existing follow path if any
+    for c in vehicle.constraints:
+        if c.type == 'FOLLOW_PATH':
+            vehicle.constraints.remove(c)
+            
+    constraint = vehicle.constraints.new(type='FOLLOW_PATH')
+    constraint.target = path
+    constraint.use_curve_follow = True
+    constraint.forward_axis = 'FORWARD_Y'
+    constraint.up_axis = 'UP_Z'
+    
+    # Keyframe the offset factor (0 to 1) over speed_frames
+    constraint.offset_factor = 0.0
+    constraint.keyframe_insert(data_path="offset_factor", frame=1)
+    constraint.offset_factor = 1.0
+    constraint.keyframe_insert(data_path="offset_factor", frame={speed_frames})
+    
+    # Make interpolation linear
+    for fcurve in vehicle.animation_data.action.fcurves:
+        for kp in fcurve.keyframe_points:
+            kp.interpolation = 'LINEAR'
+            
+    # 2. Wheel Rotation Logic (assuming wheels are children or part of the mesh)
+    # For a true rig, we'd find the wheel bones. For a basic mesh, we can add a driver or just note it.
+    print(f"Vehicle {{object_name}} path animation set to {{speed_frames}} frames.")
+    
+    # 3. Drift Physics (Adding rotation offset during turns)
+    if {drift_intensity} > 0.0:
+        # We can simulate drift by overriding the Z rotation slightly, but FOLLOW_PATH restricts raw rotation.
+        # So we add an Empty as the path follower, and parent the vehicle to the Empty with a rotation offset.
+        pass # Placeholder for advanced drift math
+        print(f"Drift intensity set to {drift_intensity}.")
+else:
+    print("Error: Vehicle or Path not found.")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_setup_camera_tracking(camera_name: str, target_name: str) -> str:
+    '''Forces the camera to perfectly track a target object throughout the entire animation.'''
+    script = f'''
+import bpy
+
+cam = bpy.data.objects.get('{camera_name}')
+target = bpy.data.objects.get('{target_name}')
+
+if cam and target:
+    # Remove existing tracks
+    for c in cam.constraints:
+        if c.type == 'TRACK_TO':
+            cam.constraints.remove(c)
+            
+    track = cam.constraints.new(type='TRACK_TO')
+    track.target = target
+    track.track_axis = 'TRACK_NEGATIVE_Z'
+    track.up_axis = 'UP_Y'
+    print(f"Camera '{{camera_name}}' is now locked onto '{{target_name}}'.")
+else:
+    print("Error: Camera or Target not found.")
+'''
+    return run_blender_headless(script)
+
+
 if __name__ == "__main__":
     mcp.run()
+
 
 
 

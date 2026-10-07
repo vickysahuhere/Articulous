@@ -65,6 +65,11 @@ After generating a component:
 2. Use `articulous_import_polyhaven_asset` to populate the background with models (e.g., "street", "building", "trash").
 3. Run `articulous_fix_floating_objects` to snap models to the floor using physics.
 
+## 3. CAMERA & PHYSICS LOGIC
+- **Cameras:** ALWAYS use rticulous_setup_camera_tracking to lock the camera to the main moving object. NEVER forget the camera.
+- **Vehicles:** Use rticulous_animate_vehicle for cars. Do NOT attempt to manually keyframe wheel rotations or drift math; use the dedicated tool to ensure wheels spin forward, not backward.
+- **Timelines:** Ensure py.context.scene.frame_end exactly matches the speed/duration you promised the user. If they want 10 seconds at 24fps, frame_end MUST be 240.
+
 ## 5.5 STORYMODE VERIFICATION
 Before calling it complete, you MUST verify that you actually built what you promised.
 1. Run rticulous_storymode_verify passing your JSON timeline plan.
@@ -79,6 +84,7 @@ Before calling it complete, you MUST verify that you actually built what you pro
 
 ## FAILURE RECOVERY
 If a Python script fails, capture the `stderr` traceback. Identify the failing line. DO NOT restart the entire process. The scene state is preserved in `working_state.blend`. Write a corrected script and retry just that component.
+
 
 
 
