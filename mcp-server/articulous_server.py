@@ -935,8 +935,228 @@ else:
     return run_blender_headless(script)
 
 
+@mcp.tool()
+def articulous_auto_rig(object_name: str, rig_type: str = "BASIC") -> str:
+    '''Automatically generates an armature and binds a mesh to it with automatic weights. rig_type can be BASIC or SPINAL.'''
+    script = f'''
+import bpy
+from mathutils import Vector
+
+obj = bpy.data.objects.get('{object_name}')
+if not obj or obj.type != 'MESH':
+    print(f"Error: MESH object {{object_name}} not found.")
+else:
+    # 1. Reset Transforms and Origin
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
+    
+    # 2. Get bounding box dimensions for bone scaling
+    dims = obj.dimensions
+    center = obj.location
+    z_min = center.z - (dims.z / 2)
+    z_max = center.z + (dims.z / 2)
+    
+    # 3. Create Armature
+    bpy.ops.object.armature_add(enter_editmode=True, align='WORLD', location=(center.x, center.y, z_min))
+    arm = bpy.context.active_object
+    arm.name = f"{{obj.name}}_Rig"
+    
+    if '{rig_type}' == 'SPINAL':
+        # Create a 3-bone spine
+        bpy.ops.armature.select_all(action='SELECT')
+        bpy.ops.armature.delete()
+        
+        amt = arm.data
+        bone1 = amt.edit_bones.new('Bone.Base')
+        bone1.head = (center.x, center.y, z_min)
+        bone1.tail = (center.x, center.y, center.z - (dims.z/6))
+        
+        bone2 = amt.edit_bones.new('Bone.Mid')
+        bone2.head = bone1.tail
+        bone2.tail = (center.x, center.y, center.z + (dims.z/6))
+        bone2.parent = bone1
+        bone2.use_connect = True
+        
+        bone3 = amt.edit_bones.new('Bone.Top')
+        bone3.head = bone2.tail
+        bone3.tail = (center.x, center.y, z_max)
+        bone3.parent = bone2
+        bone3.use_connect = True
+    else:
+        # Scale default bone to fit object height
+        bpy.ops.armature.select_all(action='SELECT')
+        bone = arm.data.edit_bones[0]
+        bone.tail = (center.x, center.y, z_max)
+        
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # 4. Parent with Automatic Weights
+    obj.select_set(True)
+    arm.select_set(True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.parent_set(type='ARMATURE_AUTO')
+    
+    # 5. Show in front
+    arm.show_in_front = True
+    
+    print(f"Successfully auto-rigged {{object_name}} with {{rig_type}} armature.")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_apply_utility(object_name: str, utility_type: str) -> str:
+    '''Universal utility for repetitive tasks. Types: CLEAN_MESH, RESET_TRANSFORM, SMOOTH_BEVEL, CENTER_ORIGIN.'''
+    script = f'''
+import bpy
+obj = bpy.data.objects.get('{object_name}')
+if not obj:
+    print(f"Error: Object {{object_name}} not found.")
+else:
+    bpy.context.view_layer.objects.active = obj
+    util = '{utility_type}'.upper()
+    
+    if util == 'CLEAN_MESH':
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.remove_doubles()
+        bpy.ops.mesh.normals_make_consistent(inside=False)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        print(f"Cleaned mesh for {{object_name}} (Removed doubles, recalculated normals).")
+        
+    elif util == 'RESET_TRANSFORM':
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        print(f"Transforms applied for {{object_name}}.")
+        
+    elif util == 'CENTER_ORIGIN':
+        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
+        obj.location = (0, 0, 0)
+        print(f"Origin centered and object moved to world origin for {{object_name}}.")
+        
+    elif util == 'SMOOTH_BEVEL':
+        # Hard surface polishing stack
+        if not any(m.type == 'BEVEL' for m in obj.modifiers):
+            bev = obj.modifiers.new(name="AutoBevel", type='BEVEL')
+            bev.segments = 3
+            bev.limit_method = 'ANGLE'
+            bev.width = 0.02
+        if not any(m.type == 'SUBSURF' for m in obj.modifiers):
+            sub = obj.modifiers.new(name="AutoSubsurf", type='SUBSURF')
+            sub.levels = 2
+        
+        # Enable Auto Smooth
+        bpy.ops.object.shade_smooth()
+        obj.data.use_auto_smooth = True
+        obj.data.auto_smooth_angle = 0.523599 # 30 degrees
+        print(f"Applied Bevel+Subsurf polishing stack to {{object_name}}.")
+    else:
+        print(f"Unknown utility {{util}}.")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_setup_lighting(style: str = "THREE_POINT", target_name: str = "") -> str:
+    '''Instantly generates professional lighting setups: THREE_POINT, DRAMATIC, or SOFT_STUDIO.'''
+    script = f'''
+import bpy
+from mathutils import Vector
+
+style = '{style}'.upper()
+target = bpy.data.objects.get('{target_name}')
+center = target.location if target else Vector((0,0,0))
+radius = max(target.dimensions) * 2 if target else 10.0
+radius = max(radius, 5.0)
+
+# Clean old lights
+for obj in bpy.data.objects:
+    if obj.type == 'LIGHT' and obj.name.startswith("AutoLight_"):
+        bpy.data.objects.remove(obj, do_unlink=True)
+
+def add_light(name, ltype, energy, loc):
+    light_data = bpy.data.lights.new(name=name, type=ltype)
+    light_data.energy = energy
+    if ltype == 'AREA':
+        light_data.size = radius * 0.5
+    light_obj = bpy.data.objects.new(name=f"AutoLight_{{name}}", object_data=light_data)
+    bpy.context.collection.objects.link(light_obj)
+    light_obj.location = loc
+    
+    # Track to target
+    track = light_obj.constraints.new(type='TRACK_TO')
+    track.target = target
+    track.track_axis = 'TRACK_NEGATIVE_Z'
+    track.up_axis = 'UP_Y'
+    return light_obj
+
+if style == 'THREE_POINT':
+    add_light("Key", 'AREA', 1000 * radius, center + Vector((radius, -radius, radius)))
+    add_light("Fill", 'AREA', 500 * radius, center + Vector((-radius, -radius, radius*0.5)))
+    add_light("Rim", 'AREA', 1500 * radius, center + Vector((-radius*0.5, radius, radius*1.5)))
+    
+elif style == 'DRAMATIC':
+    add_light("Rim_Left", 'SPOT', 2000 * radius, center + Vector((-radius, radius, radius)))
+    add_light("Rim_Right", 'SPOT', 2000 * radius, center + Vector((radius, radius, radius)))
+    add_light("Fill_Weak", 'AREA', 100 * radius, center + Vector((0, -radius, 0)))
+    
+elif style == 'SOFT_STUDIO':
+    add_light("Top_Dome", 'AREA', 800 * radius, center + Vector((0, 0, radius*2)))
+    bpy.data.objects["AutoLight_Top_Dome"].data.size = radius * 2
+    add_light("Front_Bounce", 'AREA', 400 * radius, center + Vector((0, -radius*1.5, radius*0.5)))
+    
+print(f"Successfully generated {{style}} lighting setup.")
+'''
+    return run_blender_headless(script)
+
+@mcp.tool()
+def articulous_setup_physics(object_name: str, physics_type: str = "RIGID_ACTIVE") -> str:
+    '''Sets up physics simulations. Types: RIGID_ACTIVE, RIGID_PASSIVE, CLOTH, COLLISION.'''
+    script = f'''
+import bpy
+
+obj = bpy.data.objects.get('{object_name}')
+if not obj:
+    print(f"Error: Object {{object_name}} not found.")
+else:
+    bpy.context.view_layer.objects.active = obj
+    ptype = '{physics_type}'.upper()
+    
+    if ptype in ['RIGID_ACTIVE', 'RIGID_PASSIVE']:
+        if not bpy.context.scene.rigidbody_world:
+            bpy.ops.rigidbody.world_add()
+            
+        if not obj.rigid_body:
+            bpy.ops.rigidbody.object_add()
+            
+        if ptype == 'RIGID_ACTIVE':
+            obj.rigid_body.type = 'ACTIVE'
+            obj.rigid_body.collision_shape = 'CONVEX_HULL'
+            print(f"Set {{object_name}} to ACTIVE Rigid Body.")
+        else:
+            obj.rigid_body.type = 'PASSIVE'
+            obj.rigid_body.collision_shape = 'MESH'
+            print(f"Set {{object_name}} to PASSIVE Rigid Body.")
+            
+    elif ptype == 'CLOTH':
+        if not any(m.type == 'CLOTH' for m in obj.modifiers):
+            bpy.ops.object.modifier_add(type='CLOTH')
+        obj.modifiers["Cloth"].settings.quality = 5
+        obj.modifiers["Cloth"].collision_settings.use_self_collision = True
+        print(f"Applied CLOTH physics to {{object_name}}.")
+        
+    elif ptype == 'COLLISION':
+        if not any(m.type == 'COLLISION' for m in obj.modifiers):
+            bpy.ops.object.modifier_add(type='COLLISION')
+        print(f"Applied COLLISION to {{object_name}}.")
+        
+    else:
+        print(f"Unknown physics type {{ptype}}")
+'''
+    return run_blender_headless(script)
+
+
 if __name__ == "__main__":
     mcp.run()
+
 
 
 
